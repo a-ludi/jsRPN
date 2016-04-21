@@ -1,0 +1,18 @@
+.jsRPN {
+  width: 25em;
+}
+
+.jsRPN .frame {
+  border: 1px solid black;
+}
+
+.jsRPN .buttongrid { width: 100%; }
+.jsRPN .buttongrid .row { clear: both; }
+.jsRPN .button { float: left; }
+
+.jsRPN .register {}
+.jsRPN .register .label {}
+.jsRPN .register .value {
+  display: inline-block;
+  text-align: right;
+}

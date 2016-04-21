@@ -1,0 +1,93 @@
+.jsRPN {
+  font-family: sans;
+}
+
+.register {
+  display: block;
+  text-align: right;
+  padding: 1px;
+  margin: 0px;
+}
+
+.register .label {
+  display: block;
+  float: left;
+  color: #666;
+  font-weight: bold;
+}
+
+.register .value {
+  font-family: mono;
+  font-size: 18px;
+}
+
+.register .value .exponent {
+  position: relative;
+  font-size: 60%;
+  bottom: 1ex;
+}
+
+.register .value .base {
+  position: relative;
+  font-size: 60%;
+}
+
+.button {
+  position: relative;
+  border: 1px solid #000;
+  font-size: 16px;
+  height: 40px;
+  text-decoration: none;
+  text-align: center;
+}
+
+.button.disabled { background: #ddd; }
+.row.cols5 .button { width: calc(25em/5 - 2px); }
+.row.cols5 .button.colspan2 { width: calc(2*25em/5 - 2px); }
+.row.cols6 .button { width: calc(25em/6 - 2px); }
+
+.button .action { color: #999; position: absolute; }
+.button .action.modeAny { color: #000; }
+.button.mode0 .action.mode0 { color: #000; }
+.button.mode1 .action.mode1 { color: #000; }
+.button.mode2 .action.mode2 { color: #000; }
+
+.button .action.mode0, .button .action.modeAny {
+  font-weight: bold;
+  bottom: 0.2em;
+  width: 100%;
+}
+.button .action.mode1, .button .action.mode2 { top: 0.2em; }
+.button .action.mode1 { width: 100%; font-size: 80%; }
+.button.actions3 .action.mode1, .button .action.mode2 { font-size: 60%; }
+.button.actions3 .action.mode1 {
+  width: 50%;
+  left: 0.2em;
+}
+.button .action.mode2 {
+  font-style: italic;
+  width: 50%;
+  right: 0.2em;
+}
+
+.popupList {
+  background-color: rgba(0, 0, 0, 0.2);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 23em;
+  height: 100%;
+  padding: 2em;
+}
+.popupList .container { background-color: #fff; }
+.popupList .title {
+  background-color: #777;
+  color: #fff;
+  margin: 0px;
+  padding: 0.2em 0.5em;
+}
+.popupList .list { padding: 0px; margin: 0px; }
+.popupList .list li.odd { background-color: #ddd; }
+.popupList .list li {
+  padding: 0.2em 0.5em;
+}

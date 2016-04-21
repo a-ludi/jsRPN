@@ -1,0 +1,203 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>jsRPN</title>
+    <link rel="shortcut icon" href="favicon.png" type="image/png" />
+    <script type="text/javascript" src="prototype.js"></script>
+    <script type="text/javascript" src="RPN.js"></script>
+    <script type="text/javascript" src="Layout.js"></script>
+    <link rel="stylesheet" href="base.css" type="text/css" />
+    <link rel="stylesheet" href="style.css" type="text/css" />
+  </head>
+  <body id="jsRPN" onLoad="new RPNCalcLayout('jsRPNTemplate', 'jsRPN', jsRPN);" class="jsRPN"></body>
+    <xml id="jsRPNTemplate">
+      <rpnframe>
+        <statusline></statusline>
+        <keybuffer></keybuffer>
+        <register type="stack" idx="2"></register>
+        <register type="stack" idx="1"></register>
+        <register type="stack" idx="0"></register>
+      </rpnframe>
+      <buttongrid>
+        <row>
+          <button>
+            <func action="this.keyboard.shift(); return false" onLayout="any">SHIFT</func>
+          </button>
+          <button disabled>
+            <func action="">DRG ▸</func>
+            <func action="">DRG</func>
+          </button>
+          <button>
+            <func action="">MEM</func>
+            <func action="">TAB</func>
+            <func action="">BAT</func>
+          </button>
+          <button>
+            <func action="this.memory.recall('M')">MR</func>
+            <func action="this.printRecallMemory()">RCL</func>
+          </button>
+          <button>
+            <func action="this.memory.store('M')">MS</func>
+            <func action="this.printStoreMemory()">STO</func>
+          </button>
+          <button>
+            <func action="this.memory.addTo('M')">M+</func>
+            <func action="this.memory.subtractFrom('M')">M-</func>
+          </button>
+        </row>
+        <row>
+          <button>
+            <func action="this.calc.min()">min</func>
+            <func action="this.calc.max()">max</func>
+          </button>
+          <button>
+            <func action="this.calc.round()">[<em>x</em>]</func>
+            <func action="this.calc.floor()">⌊<em>x</em>⌋</func>
+            <func action="this.calc.ceil()">⌈<em>x</em>⌉</func>
+          </button>
+          <button disabled>
+          </button>
+          <button disabled>
+          </button>
+          <button disabled>
+          </button>
+          <button disabled>
+          </button>
+        </row>
+        <row>
+          <button disabled>
+            <func action="this.calc.hyp()">hyp</func>
+            <func action="this.calc.ahyp()">hyp⁻¹</func>
+          </button>
+          <button>
+            <func action="this.calc.sin()">sin</func>
+            <func action="this.calc.asin()">sin⁻¹</func>
+          </button>
+          <button>
+            <func action="this.calc.cos()">cos</func>
+            <func action="this.calc.acos()">cos⁻¹</func>
+          </button>
+          <button>
+            <func action="this.calc.tan()">tan</func>
+            <func action="this.calc.atan()">tan⁻¹</func>
+          </button>
+          <button>
+            <func action="this.calc.log()">ln</func>
+            <func action="this.calc.exp()"><em>e</em><sup><em>x</em></sup></func>
+          </button>
+          <button>
+            <func action="this.calc.log10()">log</func>
+            <func action="this.calc.exp10()">10<sup><em>x</em></sup></func>
+          </button>
+        </row>
+        <row>
+          <button>
+            <func action=""><em>a</em><sup><em>b</em></sup>⁄<small><em>c</em></small></func>
+            <func action="">° ' "</func>
+          </button>
+          <button>
+            <func action="this.calc.pow()"><em>y</em><sup><em>x</em></sup></func>
+            <func action="this.calc.root()"><sup><em>x</em></sup>√<em>y̅</em></func>
+          </button>
+          <button>
+            <func action="this.calc.square()"><em>y</em>²</func>
+            <func action="this.calc.sqrt()">√‾</func>
+          </button>
+          <button>
+            <func action="this.calc.reciprocal()">¹⁄<small><em>x</em></small></func>
+            <func action="this.calc.percentage()">%</func>
+          </button>
+          <button>
+            <func action="this.stack.pop()">DROP</func>
+            <func action="this.printStack()">STACK</func>
+          </button>
+          <button>
+            <func action="this.stack.swap()">X⇌Y</func>
+            <func action="">LAST <em>x</em></func>
+          </button>
+        </row>
+      </buttongrid>
+      <buttongrid>
+        <row>
+          <button>
+            <func action="this.stack.inputRegister.enterDigit(7)">7</func>
+            <func action="this.calc.cube()"><em>x</em>³</func>
+          </button>
+          <button>
+            <func action="this.stack.inputRegister.enterDigit(8)">8</func>
+            <func action="this.calc.cuberoot()">∛</func>
+          </button>
+          <button>
+            <func action="this.stack.inputRegister.enterDigit(9)">9</func>
+            <func action="">UNDO</func>
+          </button>
+          <button>
+            <func action="this.stack.inputRegister.enterExponent()">EXP</func>
+          </button>
+          <button>
+            <func action="this.stack.inputRegister.delete()">←</func>
+          </button>
+        </row>
+        <row>
+          <button>
+            <func action="this.stack.inputRegister.enterDigit(4)">4</func>
+            <func action="this.calc.faculty()"><em>n</em>!</func>
+          </button>
+          <button>
+            <func action="this.stack.inputRegister.enterDigit(5)">5</func>
+            <func action="this.calc.binomial()"><em>n</em>C<em>r</em></func>
+          </button>
+          <button>
+            <func action="this.stack.inputRegister.enterDigit(6)">6</func>
+            <func action="" disable><em>n</em>P<em>r</em></func>
+          </button>
+          <button>
+            <func action="this.calc.multiply()">×</func>
+          </button>
+          <button>
+            <func action="this.calc.divide()">÷</func>
+            <func action="this.calc.mod()">MOD</func>
+            <func action="this.calc.div()">DIV</func>
+          </button>
+        </row>
+        <row>
+          <button>
+            <func action="this.stack.inputRegister.enterDigit(1)">1</func>
+            <func action="this.calc.random()">RAND</func>
+          </button>
+          <button>
+            <func action="this.stack.inputRegister.enterDigit(2)">2</func>
+            <func action="this.calc.E()"><em>e</em></func>
+          </button>
+          <button>
+            <func action="this.stack.inputRegister.enterDigit(3)">3</func>
+            <func action="this.calc.PI()"><em>&pi;</em></func>
+          </button>
+          <button>
+            <func action="this.calc.add()">+</func>
+          </button>
+          <button>
+            <func action="this.calc.subtract()">-</func>
+          </button>
+        </row>
+        <row>
+          <button>
+            <func action="this.stack.inputRegister.enterDigit(0)">0</func>
+          </button>
+          <button>
+            <func action="this.stack.inputRegister.changeSign()">&plusmn;</func>
+          </button>
+          <button>
+            <func action="this.stack.inputRegister.enterDecimalPoint()">.</func>
+            <func action="this.calc.frac()">FRAC</func>
+          </button>
+          <button colspan="2">
+            <func action="this.stack.push()">ENTER</func>
+          </button>
+        </row>
+      </buttongrid>
+      <popuplist />
+    </xml>
+  </body>
+</html>
