@@ -73,6 +73,7 @@ var InputStack = Class.create({
     this.InputRegister = InputRegister;
     this.stack = new Array();
     this.inputRegister = new this.InputRegister();
+    this._lastX = undefined;
   },
 
   onChange: function() {
@@ -124,9 +125,10 @@ var InputStack = Class.create({
   },
 
   push: function(register_or_number) {
-    if(this.inputRegister.isDirty)
+    if(this.inputRegister.isDirty) {
       this.stack.push(this.inputRegister.toReadOnly());
-    if(Object.isNumber(register_or_number))
+      this._lastX = this.stack.last();
+    } if(Object.isNumber(register_or_number))
       this.inputRegister = new this.InputRegister(register_or_number);
     else if(register_or_number instanceof this.InputRegister)
       this.inputRegister = new this.InputRegister(register_or_number.toNumber());
@@ -146,6 +148,13 @@ var InputStack = Class.create({
     this.stack.push(x);
 
     this.onChange();
+  },
+
+  lastX: function() {
+    if(Object.isUndefined(this._lastX))
+      return;
+
+    this.push(this._lastX);
   },
 
   size: function() {
@@ -389,60 +398,77 @@ Keyboard.onChange = "jsRPN:Keyboard:onChange"
 var KeyboardListener = Class.create({
   initialize: function(rpn) {
     this.rpn = rpn;
-    responses = {};
-    responses['ArrowUp'] = (rpn => rpn.stack.swap());
-    responses['ArrowDown'] = (rpn => rpn.stack.pop());
-    responses['Backspace'] = (rpn => rpn.stack.inputRegister.delete());
-    responses['0'] = (rpn => rpn.stack.inputRegister.enterDigit(0));
-    responses['1'] = (rpn => rpn.stack.inputRegister.enterDigit(1));
-    responses['2'] = (rpn => rpn.stack.inputRegister.enterDigit(2));
-    responses['3'] = (rpn => rpn.stack.inputRegister.enterDigit(3));
-    responses['4'] = (rpn => rpn.stack.inputRegister.enterDigit(4));
-    responses['5'] = (rpn => rpn.stack.inputRegister.enterDigit(5));
-    responses['6'] = (rpn => rpn.stack.inputRegister.enterDigit(6));
-    responses['7'] = (rpn => rpn.stack.inputRegister.enterDigit(7));
-    responses['8'] = (rpn => rpn.stack.inputRegister.enterDigit(8));
-    responses['9'] = (rpn => rpn.stack.inputRegister.enterDigit(9));
-    responses['.'] = (rpn => rpn.stack.inputRegister.enterDecimalPoint());
-    responses[','] = (rpn => rpn.stack.inputRegister.enterDecimalPoint());
-    responses['e'] = (rpn => rpn.stack.inputRegister.enterExponent());
-    responses['Enter'] = (rpn => rpn.stack.push());
-    responses['+'] = (rpn => rpn.calc.add());
-    responses['-'] = (rpn => rpn.calc.subtract());
-    responses['*'] = (rpn => rpn.calc.multiply());
-    responses['/'] = (rpn => rpn.calc.divide());
-    responses['²'] = (rpn => rpn.calc.square());
-    responses['³'] = (rpn => rpn.calc.cube());
-    responses['%'] = (rpn => rpn.calc.percentage());
-    responses['^'] = (rpn => rpn.calc.pow());
-    this.responses = $H(responses);
     this.keyBuffer = '';
+    this.keyBindings = this.getKeyBindings();
+    this.commandMode = false;
+    this.lastError = {hasError: false, message: undefined};
 
     $(document).on("keydown", this.onKeyDown.bind(this));
   },
 
+  getKeyBindings: function() {
+    kb = {normal: {}, command: {}};
+    kb.normal['ArrowUp'] = (self => self.rpn.stack.swap());
+    kb.normal['ArrowDown'] = (self => self.rpn.stack.pop());
+    kb.normal['Backspace'] = (self => self.rpn.stack.inputRegister.delete());
+    kb.normal['0'] = (self => self.rpn.stack.inputRegister.enterDigit(0));
+    kb.normal['1'] = (self => self.rpn.stack.inputRegister.enterDigit(1));
+    kb.normal['2'] = (self => self.rpn.stack.inputRegister.enterDigit(2));
+    kb.normal['3'] = (self => self.rpn.stack.inputRegister.enterDigit(3));
+    kb.normal['4'] = (self => self.rpn.stack.inputRegister.enterDigit(4));
+    kb.normal['5'] = (self => self.rpn.stack.inputRegister.enterDigit(5));
+    kb.normal['6'] = (self => self.rpn.stack.inputRegister.enterDigit(6));
+    kb.normal['7'] = (self => self.rpn.stack.inputRegister.enterDigit(7));
+    kb.normal['8'] = (self => self.rpn.stack.inputRegister.enterDigit(8));
+    kb.normal['9'] = (self => self.rpn.stack.inputRegister.enterDigit(9));
+    kb.normal['.'] = (self => self.rpn.stack.inputRegister.enterDecimalPoint());
+    kb.normal[','] = (self => self.rpn.stack.inputRegister.enterDecimalPoint());
+    kb.normal['e'] = (self => self.rpn.stack.inputRegister.enterExponent());
+    kb.normal['s'] = (self => self.rpn.stack.inputRegister.changeSign());
+    kb.normal['Enter'] = (self => self.rpn.stack.push());
+    kb.normal['+'] = (self => self.rpn.calc.add());
+    kb.normal['-'] = (self => self.rpn.calc.subtract());
+    kb.normal['*'] = (self => self.rpn.calc.multiply());
+    kb.normal['/'] = (self => self.rpn.calc.divide());
+    kb.normal['²'] = (self => self.rpn.calc.square());
+    kb.normal['³'] = (self => self.rpn.calc.cube());
+    kb.normal['%'] = (self => self.rpn.calc.percentage());
+    kb.normal['^'] = (self => self.rpn.calc.pow());
+    kb.normal[' '] = (self => self.enterCommandMode());
+    kb.command['Enter'] = function(self) {
+      var execCommand = self.rpn.calc[self.keyBuffer];
+      if(Object.isFunction(execCommand)) {
+        execCommand();
+        self.leaveCommandMode();
+        self.clearKeyBuffer();
+      } else {
+        self.leaveCommandMode("<em>#{input}</em> unknown".interpolate({input: self.keyBuffer}));
+      }
+    };
+    kb.command['Backspace'] = function(self) {
+      if(self.keyBuffer.blank())
+        self.leaveCommandMode();
+      self.deleteLastCharFromKeyBuffer();
+    }
+    kb.command['Escape'] = function(self) {
+      self.leaveCommandMode();
+      self.clearKeyBuffer();
+    }
+
+    return kb;
+  },
+
   onKeyDown: function(e) {
-    var respond = this.responses.get(e.key);
-    if(this.keyBuffer.blank() && Object.isFunction(respond)) {
-      respond(this.rpn);
+    var execAction = this.isCommandMode() ?
+      this.keyBindings.command[e.key] :
+      this.keyBindings.normal[e.key];
+
+    if(Object.isFunction(execAction)) {
+      execAction(this);
       e.stop();
-    } else if(e.key.length === 1) {
+    } else if(e.key.match(/^[a-zA-Z_0-9]$/)) {
+      this.enterCommandMode();
       this.appendToKeyBuffer(e.key);
-      e.stop();
-    } else if(e.key === 'Enter') {
-      var respond = this.rpn.calc[this.keyBuffer];
-      if(Object.isFunction(respond))
-        respond();
-      else
-        console.log("Unkown function: " + this.keyBuffer + " -> " + Object.inspect(respond));
-      // TODO else indicate error
-      this.clearKeyBuffer();
-      e.stop();
-    } else if(e.key === 'Backspace') {
-      this.deleteLastCharFromKeyBuffer();
-      e.stop();
-    } else if(e.key === 'Escape') {
-      this.clearKeyBuffer();
       e.stop();
     } else {
       console.log("Key down: '" + e.key + "'");
@@ -455,16 +481,48 @@ var KeyboardListener = Class.create({
   },
 
   deleteLastCharFromKeyBuffer: function() {
-    this.keyBuffer = this.keyBuffer.substr(0, this.keyBuffer.length - 1);
-    $(document).fire(KeyboardListener.onBufferChange);
+    if(this.keyBuffer.length > 0) {
+      this.keyBuffer = this.keyBuffer.substr(0, this.keyBuffer.length - 1);
+      $(document).fire(KeyboardListener.onBufferChange);
+    }
   },
 
   clearKeyBuffer: function() {
     this.keyBuffer = '';
     $(document).fire(KeyboardListener.onBufferChange);
+  },
+
+  enterCommandMode: function() {
+    if(! this.commandMode) {
+      this.commandMode = true;
+      this.clearKeyBuffer();
+      console.log("Entering CommandMode");
+      $(document).fire(KeyboardListener.onEnterCommandMode);
+    }
+  },
+
+  leaveCommandMode: function(error) {
+    if(this.lastError.hasError && Object.isUndefined(error))
+      $(document).fire(KeyboardListener.onLeaveCommandMode);
+
+    if(this.commandMode) {
+      this.commandMode = false;
+      this.lastError = {
+        hasError: ! Object.isUndefined(error),
+        message: error
+      };
+      console.log("Leaving CommandMode");
+      $(document).fire(KeyboardListener.onLeaveCommandMode, this.lastError);
+    }
+  },
+
+  isCommandMode: function() {
+    return this.commandMode;
   }
 });
 KeyboardListener.onBufferChange = "jsRPN:KeyboardListener:onBufferChange"
+KeyboardListener.onEnterCommandMode = "jsRPN:KeyboardListener:onEnterCommandMode"
+KeyboardListener.onLeaveCommandMode = "jsRPN:KeyboardListener:onLeaveCommandMode"
 
 var RPNClass = Class.create({
   initialize: function() {
@@ -489,11 +547,18 @@ var RPNClass = Class.create({
 
     this.keyboardListener = new KeyboardListener(this);
     $(document).on(KeyboardListener.onBufferChange, function() {
-      if(this.keyboardListener.keyBuffer.blank()) {
-        $$(".jsRPN .keyBuffer").invoke("hide");
+      $$(".jsRPN .keyBuffer").invoke("removeClassName", "error")
+                             .invoke("update", "> " + this.keyboardListener.keyBuffer + '<span class="cursor">▂</span>');
+    }.bind(this));
+    $(document).on(KeyboardListener.onEnterCommandMode, function() {
+      $$(".jsRPN .keyBuffer").invoke("show");
+    }.bind(this));
+    $(document).on(KeyboardListener.onLeaveCommandMode, function(e) {
+      if(e.memo.hasError) {
+        $$(".jsRPN .keyBuffer").invoke("addClassName", "error")
+                               .invoke("update", ">>> " + e.memo.message + " <<<");
       } else {
-        $$(".jsRPN .keyBuffer").invoke("update", this.keyboardListener.keyBuffer)
-                               .invoke("show");
+        $$(".jsRPN .keyBuffer").invoke("hide");
       }
     }.bind(this));
   },
