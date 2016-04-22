@@ -1,6 +1,23 @@
 .jsRPN {
   font-family: sans;
+  width: 25em;
 }
+
+.frame {
+  border: 1px solid black;
+  position: relative;
+}
+
+.keyBuffer {
+  width: calc(100% - 2*0.5em);
+  background: #333;
+  color: #fff;
+  font-family: mono;
+  font-size: 18px;
+  text-align: right;
+  padding: 1px 0.5em;
+}
+.keyBuffer.error { background: #b00; }
 
 .register {
   display: block;
@@ -17,6 +34,8 @@
 }
 
 .register .value {
+  display: inline-block;
+  text-align: right;
   font-family: mono;
   font-size: 18px;
 }
@@ -32,7 +51,11 @@
   font-size: 60%;
 }
 
+.buttongrid { width: 100%; }
+.buttongrid .row { clear: both; }
+
 .button {
+  float: left;
   position: relative;
   border: 1px solid #000;
   font-size: 16px;
