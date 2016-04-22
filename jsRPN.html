@@ -7,17 +7,16 @@
     <script type="text/javascript" src="prototype.js"></script>
     <script type="text/javascript" src="RPN.js"></script>
     <script type="text/javascript" src="Layout.js"></script>
-    <link rel="stylesheet" href="base.css" type="text/css" />
     <link rel="stylesheet" href="style.css" type="text/css" />
   </head>
   <body id="jsRPN" onLoad="new RPNCalcLayout('jsRPNTemplate', 'jsRPN', jsRPN);" class="jsRPN"></body>
     <xml id="jsRPNTemplate">
       <rpnframe>
         <statusline></statusline>
-        <keybuffer></keybuffer>
         <register type="stack" idx="2"></register>
         <register type="stack" idx="1"></register>
         <register type="stack" idx="0"></register>
+        <keybuffer></keybuffer>
       </rpnframe>
       <buttongrid>
         <row>
@@ -28,7 +27,7 @@
             <func action="">DRG ▸</func>
             <func action="">DRG</func>
           </button>
-          <button>
+          <button disabled>
             <func action="">MEM</func>
             <func action="">TAB</func>
             <func action="">BAT</func>
@@ -92,7 +91,7 @@
           </button>
         </row>
         <row>
-          <button>
+          <button disabled>
             <func action=""><em>a</em><sup><em>b</em></sup>⁄<small><em>c</em></small></func>
             <func action="">° ' "</func>
           </button>
@@ -114,7 +113,7 @@
           </button>
           <button>
             <func action="this.stack.swap()">X⇌Y</func>
-            <func action="">LAST <em>x</em></func>
+            <func action="this.stack.lastX()">LAST <em>x</em></func>
           </button>
         </row>
       </buttongrid>
@@ -136,7 +135,8 @@
             <func action="this.stack.inputRegister.enterExponent()">EXP</func>
           </button>
           <button>
-            <func action="this.stack.inputRegister.delete()">←</func>
+            <func action="this.stack.inputRegister.delete()">⌫</func>
+            <func action="this.stack.clear()">CLEAR</func>
           </button>
         </row>
         <row>
